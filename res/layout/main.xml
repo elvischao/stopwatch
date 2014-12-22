@@ -3,12 +3,10 @@
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
-              android:background="@android:color/white"
+              android:background="@color/background_color"
         >
-    <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Hello World, MainActivity"
-            />
+    <com.henryzhefeng.stopwatch.StopwatchView
+            android:id="@+id/stopwatch"
+            android:layout_width="fill_parent" android:layout_height="fill_parent"/>
 </LinearLayout>
 
