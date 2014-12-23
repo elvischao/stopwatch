@@ -3,10 +3,18 @@
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
-              android:background="@color/background_color"
         >
-    <com.henryzhefeng.stopwatch.StopwatchView
-            android:id="@+id/stopwatch"
-            android:layout_width="fill_parent" android:layout_height="fill_parent"/>
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="0dip" android:layout_weight="5"
+                  android:background="@color/up_half_background_color" android:orientation="vertical">
+        <com.henryzhefeng.stopwatch.StopwatchView
+                android:id="@+id/stopwatch"
+                android:layout_width="fill_parent" android:layout_height="fill_parent"/>
+    </LinearLayout>
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="0dip" android:layout_weight="3"
+                  android:background="@color/down_half_background_color" android:orientation="vertical">
+        <ListView android:id="@+id/resultList" android:layout_width="fill_parent"
+                  android:layout_height="fill_parent" android:background="@android:color/transparent">
+        </ListView>
+    </LinearLayout>
 </LinearLayout>
 
