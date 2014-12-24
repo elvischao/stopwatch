@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,8 @@ public class RecordListAdapter extends BaseAdapter {
         } else {
             view = convertView;
         }
+        TextView textView = (TextView) view.findViewById(R.id.lab_order);
+        textView.setText(String.valueOf(position));
         return view;
     }
 }

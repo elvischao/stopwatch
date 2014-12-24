@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="list_item_height">55dp</dimen>
+    <dimen name="btn_bar_height">60dp</dimen>
+    <dimen name="btn_text_size">14sp</dimen>
+    <dimen name="btn_radius">40dp</dimen>
+</resources>

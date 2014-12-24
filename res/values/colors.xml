@@ -7,4 +7,5 @@
     <color name="sec_clock_circle_color">@android:color/white</color>
     <color name="sec_clock_inner_color">@android:color/white</color>
     <color name="light_gray">#ffeaeaea</color>
+    <color name="dark_gray">#ffd3d3d3</color>
 </resources>
