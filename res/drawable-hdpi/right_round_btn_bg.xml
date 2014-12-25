@@ -7,4 +7,12 @@
             <stroke android:width="0.5dp" android:color="@color/dark_gray"/>
         </shape>
     </item>
+    <item android:state_pressed="true">
+        <!--TODO: try to erase one side-->
+        <shape android:shape="rectangle">
+            <corners android:topRightRadius="@dimen/btn_radius" android:bottomRightRadius="@dimen/btn_radius"/>
+            <gradient android:startColor="@color/light_gray" android:endColor="@color/light_gray"/>
+            <stroke android:width="0.5dp" android:color="@color/dark_gray"/>
+        </shape>
+    </item>
 </selector>
