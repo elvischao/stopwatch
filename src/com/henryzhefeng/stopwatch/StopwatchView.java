@@ -1,21 +1,35 @@
 package com.henryzhefeng.stopwatch;
 
+import android.animation.Animator;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 /**
  * Created by 哲 on 12/22/2014.
  */
 public class StopwatchView extends View {
+
+    // Painters
     private Paint markerPaint;
     private Paint textPaint;
     private Paint secClockCirclePaint;
     private Paint secClockJointPaint;
     private Paint secClockPointerPaint;
+
+    private double innerAngle;
+    private double outerAngle;
+    private int tenthOfSec;
+    private int seconds;
+    private int minutes;
+
+    private ValueAnimator animator;
 
     // initialize private resources
     private void initial() {
@@ -45,6 +59,7 @@ public class StopwatchView extends View {
         secClockPointerPaint.setColor(resources.getColor(R.color.sec_clock_inner_color));
         secClockPointerPaint.setStyle(Paint.Style.STROKE);
         secClockPointerPaint.setStrokeWidth(2.0f);
+
     }
 
     public StopwatchView(Context context) {
@@ -101,7 +116,7 @@ public class StopwatchView extends View {
         // draw params which can be adjusted.
         float radiusMarker = Math.min(centerX, centerY) * 2 / 3;
         float markerLen = 50.0f;
-        // use 1/4 second as unit
+        // use 1/4 second as marker unit
         double delta = (Math.PI / 30) / 2 / 2;
         for (int i = 0; i < 2 * Math.PI / delta; i++) {
             float startX = (float) (centerX + radiusMarker * Math.sin(angle));
@@ -112,8 +127,9 @@ public class StopwatchView extends View {
             angle += delta;
         }
 
+
         // Draw time text
-        String timeText = "00:00.0";
+        String timeText = String.format("%02d:%02d.%01d", minutes, seconds, tenthOfSec);
         float textWidth = textPaint.measureText(timeText);
         canvas.drawText(timeText, centerX - textWidth / 2, centerY, textPaint);
 
@@ -127,7 +143,88 @@ public class StopwatchView extends View {
         float radiusJoint = radiusSec / 10;
         canvas.drawCircle(innerCenterX, innerCenterY, radiusJoint, secClockJointPaint);
         // Draw pointer
-        canvas.drawLine(innerCenterX, innerCenterY - radiusJoint, innerCenterX, innerCenterY - radiusSec, secClockPointerPaint);
-
+        float startX = (float) (innerCenterX + radiusJoint * Math.sin(innerAngle));
+        float startY = (float) (innerCenterY - radiusJoint * Math.cos(innerAngle));
+        float endX = (float) (innerCenterX + radiusSec * Math.sin(innerAngle));
+        float endY = (float) (innerCenterY - radiusSec * Math.cos(innerAngle));
+        canvas.drawLine(startX, startY, endX, endY, secClockPointerPaint);
     }
+
+    public void start() {
+        TypeEvaluator<Double> evaluator = new TypeEvaluator<Double>() {
+            @Override
+            public Double evaluate(float fraction, Double startValue, Double endValue) {
+                return startValue + (endValue - startValue) * fraction;
+            }
+        };
+        animator = ValueAnimator.ofObject(evaluator, 0.0, 2 * Math.PI);
+        animator.setDuration(1000);
+        animator.setInterpolator(new LinearInterpolator());
+        animator.setRepeatCount(ValueAnimator.INFINITE);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                innerAngle = (Double) animation.getAnimatedValue();
+                // to get the right tenthOfSec
+                float frac = animation.getAnimatedFraction();
+                tenthOfSec = (int) (frac * 10);
+
+                // force to re-draw stopwatch
+                StopwatchView.this.invalidate();
+            }
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+                                 @Override
+                                 public void onAnimationStart(Animator animation) {
+                                 }
+
+                                 @Override
+                                 public void onAnimationEnd(Animator animation) {
+                                     // reset
+                                     tenthOfSec = 0;
+                                     seconds = 0;
+                                     minutes = 0;
+                                     innerAngle = 0;
+                                     StopwatchView.this.invalidate();
+                                 }
+
+                                 @Override
+                                 public void onAnimationCancel(Animator animation) {
+                                 }
+
+                                 @Override
+                                 public void onAnimationRepeat(Animator animation) {
+                                     ++seconds;
+                                     if (seconds >= 60) {
+                                         ++minutes;
+                                         seconds = 0;
+                                     }
+                                     innerAngle = 0;
+                                     tenthOfSec = 0;
+                                     StopwatchView.this.invalidate();
+                                 }
+                             }
+        );
+        animator.start();
+    }
+
+    public void pause() {
+        if (animator != null) {
+            animator.pause();
+        }
+    }
+
+    public void resume() {
+        if (animator != null) {
+            animator.resume();
+        }
+    }
+
+    public void reset() {
+        if (animator != null) {
+            animator.end();
+        }
+    }
+
+
 }

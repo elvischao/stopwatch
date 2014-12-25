@@ -14,10 +14,12 @@ public class MainActivity extends Activity {
         START, RESET, PAUSE, LAP
     }
 
+    // data members
     private State state;
     private InitialState initialState = new InitialState();
     private RunningState runningState = new RunningState();
     private PausedState pausedState = new PausedState();
+    private float innerAngle = 0;
 
     /**
      * Called when the activity is first created.
@@ -36,10 +38,12 @@ public class MainActivity extends Activity {
         changeToState(initialState);
 
         // set button click listener
+        final StopwatchView stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
         Button btn = (Button) findViewById(R.id.init_start_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stopwatch.start();
                 changeToState(runningState);
             }
         });
@@ -54,6 +58,7 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stopwatch.pause();
                 changeToState(pausedState);
             }
         });
@@ -61,6 +66,7 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stopwatch.resume();
                 changeToState(runningState);
             }
         });
@@ -68,9 +74,11 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stopwatch.reset();
                 changeToState(initialState);
             }
         });
+
     }
 
     private void changeToState(State newState) {
