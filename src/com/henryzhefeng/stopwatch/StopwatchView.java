@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -22,9 +23,11 @@ public class StopwatchView extends View {
     private Paint secClockCirclePaint;
     private Paint secClockJointPaint;
     private Paint secClockPointerPaint;
+    private Paint trianglePaint;
 
     private double innerAngle;
     private double outerAngle;
+    private double oldOuterAngle;
     private int tenthOfSec;
     private int seconds;
     private int minutes;
@@ -60,6 +63,8 @@ public class StopwatchView extends View {
         secClockPointerPaint.setStyle(Paint.Style.STROKE);
         secClockPointerPaint.setStrokeWidth(2.0f);
 
+        trianglePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trianglePaint.setColor(resources.getColor(R.color.triangle_indicator_color));
     }
 
     public StopwatchView(Context context) {
@@ -127,6 +132,20 @@ public class StopwatchView extends View {
             angle += delta;
         }
 
+        // Draw the triangle indicator
+        float tgLen = 40.0f;
+        float tgRadius = radiusMarker + 10.0f;
+        Path tgPath = new Path();
+        float pX = (float) (centerX + tgRadius * Math.sin(outerAngle));
+        float pY = (float) (centerY - tgRadius * Math.cos(outerAngle));
+        tgPath.moveTo(pX, pY);
+        pX = (float) (pX + tgLen * Math.sin(outerAngle - Math.PI / 6));
+        pY = (float) (pY - tgLen * Math.cos(outerAngle - Math.PI / 6));
+        tgPath.lineTo(pX, pY);
+        pX = (float) (pX + tgLen * Math.cos(outerAngle));
+        pY = (float) (pY + tgLen * Math.sin(outerAngle));
+        tgPath.lineTo(pX, pY);
+        canvas.drawPath(tgPath, trianglePaint);
 
         // Draw time text
         String timeText = String.format("%02d:%02d.%01d", minutes, seconds, tenthOfSec);
@@ -165,9 +184,10 @@ public class StopwatchView extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 innerAngle = (Double) animation.getAnimatedValue();
+                outerAngle = oldOuterAngle + innerAngle / 60;
                 // to get the right tenthOfSec
-                float frac = animation.getAnimatedFraction();
-                tenthOfSec = (int) (frac * 10);
+                float fraction = animation.getAnimatedFraction();
+                tenthOfSec = (int) (fraction * 10);
 
                 // force to re-draw stopwatch
                 StopwatchView.this.invalidate();
@@ -176,6 +196,7 @@ public class StopwatchView extends View {
         animator.addListener(new Animator.AnimatorListener() {
                                  @Override
                                  public void onAnimationStart(Animator animation) {
+                                     oldOuterAngle = outerAngle;
                                  }
 
                                  @Override
@@ -201,6 +222,7 @@ public class StopwatchView extends View {
                                      }
                                      innerAngle = 0;
                                      tenthOfSec = 0;
+                                     oldOuterAngle = outerAngle % (2 * Math.PI);
                                      StopwatchView.this.invalidate();
                                  }
                              }
