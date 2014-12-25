@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ListView;
 
 public class MainActivity extends Activity {
@@ -32,13 +33,60 @@ public class MainActivity extends Activity {
         recordList.setAdapter(new RecordListAdapter());
 
         // set state and visibility
-        state = initialState;
+        changeToState(initialState);
+
+        // set button click listener
+        Button btn = (Button) findViewById(R.id.init_start_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeToState(runningState);
+            }
+        });
+        btn = (Button) findViewById(R.id.run_lap_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO: add new records
+            }
+        });
+        btn = (Button) findViewById(R.id.run_pause_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeToState(pausedState);
+            }
+        });
+        btn = (Button) findViewById(R.id.paused_start_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeToState(runningState);
+            }
+        });
+        btn = (Button) findViewById(R.id.paused_reset_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeToState(initialState);
+            }
+        });
+    }
+
+    private void changeToState(State newState) {
         View initLayout = findViewById(R.id.init_btn_bar);
-        initLayout.setVisibility(View.VISIBLE);
         View runLayout = findViewById(R.id.run_btn_bar);
-        runLayout.setVisibility(View.INVISIBLE);
         View pausedLayout = findViewById(R.id.paused_btn_bar);
+        initLayout.setVisibility(View.INVISIBLE);
+        runLayout.setVisibility(View.INVISIBLE);
         pausedLayout.setVisibility(View.INVISIBLE);
+        if (newState == initialState) {
+            initLayout.setVisibility(View.VISIBLE);
+        } else if (newState == runningState) {
+            runLayout.setVisibility(View.VISIBLE);
+        } else {
+            pausedLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     // using State Pattern
@@ -49,21 +97,44 @@ public class MainActivity extends Activity {
     private class InitialState extends State {
         @Override
         public void informInput(INPUT input) {
-            // TODO
+            switch (input) {
+                case START:
+                    changeToState(runningState);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     private class RunningState extends State {
         @Override
         public void informInput(INPUT input) {
-            // TODO
+            switch (input) {
+                case LAP:
+                    break;
+                case PAUSE:
+                    changeToState(pausedState);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     private class PausedState extends State {
         @Override
         public void informInput(INPUT input) {
-            // TODO
+            switch (input) {
+                case RESET:
+                    changeToState(initialState);
+                    break;
+                case START:
+                    changeToState(runningState);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
