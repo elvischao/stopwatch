@@ -206,6 +206,8 @@ public class StopwatchView extends View {
                                      seconds = 0;
                                      minutes = 0;
                                      innerAngle = 0;
+                                     outerAngle = 0;
+                                     oldOuterAngle = 0;
                                      StopwatchView.this.invalidate();
                                  }
 
@@ -222,7 +224,8 @@ public class StopwatchView extends View {
                                      }
                                      innerAngle = 0;
                                      tenthOfSec = 0;
-                                     oldOuterAngle = outerAngle % (2 * Math.PI);
+                                     outerAngle = oldOuterAngle + Math.PI * 2 / 60;
+                                     oldOuterAngle = outerAngle;
                                      StopwatchView.this.invalidate();
                                  }
                              }
