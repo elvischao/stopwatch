@@ -27,11 +27,13 @@ public class StopwatchView extends View {
 
     private double innerAngle;
     private double outerAngle;
-    private double oldOuterAngle;
     private int tenthOfSec;
     private int seconds;
     private int minutes;
 
+    // for animation
+    private boolean gradient = false;
+    private double oldOuterAngle;
     private ValueAnimator animator;
 
     // initialize private resources
@@ -122,14 +124,20 @@ public class StopwatchView extends View {
         float radiusMarker = Math.min(centerX, centerY) * 2 / 3;
         float markerLen = 50.0f;
         // use 1/4 second as marker unit
-        double delta = (Math.PI / 30) / 2 / 2;
-        for (int i = 0; i < 2 * Math.PI / delta; i++) {
+        double deltaAngle = (Math.PI / 30) / 2 / 2;
+        // calculate the angle bounds. This is for alpha changing animation
+        // the alpha changing range in radius
+        final double rangeAngle = 2 * Math.PI / 3;
+        double rightAngle = outerAngle % (2 * Math.PI);
+        double leftAngle = (rightAngle + 2 * Math.PI - rangeAngle) % (2 * Math.PI);
+        for (int i = 0; i < 2 * Math.PI / deltaAngle; i++) {
             float startX = (float) (centerX + radiusMarker * Math.sin(angle));
             float startY = (float) (centerY - radiusMarker * Math.cos(angle));
             float endX = (float) (centerX + (radiusMarker - markerLen) * Math.sin(angle));
             float endY = (float) (centerY - (radiusMarker - markerLen) * Math.cos(angle));
+            markerPaint.setAlpha(calMarkerAlpha(angle, leftAngle, rightAngle, rangeAngle));
             canvas.drawLine(startX, startY, endX, endY, markerPaint);
-            angle += delta;
+            angle += deltaAngle;
         }
 
         // Draw the triangle indicator
@@ -169,6 +177,32 @@ public class StopwatchView extends View {
         canvas.drawLine(startX, startY, endX, endY, secClockPointerPaint);
     }
 
+    // helper function to calculate marker's alphaValue, the inputs must be in 2*PI.
+    private int calMarkerAlpha(double angle, double left, double right, double range) {
+        final int RIGHT_ALPHA = 255;
+        final int LEFT_ALPHA = 140;
+        // set to no gradient
+        if (gradient == false) {
+            return LEFT_ALPHA;
+        }
+        // case 1: left is bigger than right
+        // add 2*PI to right
+        if (left > right) {
+            // add 2*PI to angle if angle < right(original)
+            if (angle <= right) {
+                angle += 2 * Math.PI;
+            }
+            right += 2 * Math.PI;
+        }
+        if (angle <= right && angle >= left) {
+            // get fraction
+            double fraction = (right - angle) / range;
+            return (int) Math.round(RIGHT_ALPHA - (RIGHT_ALPHA - LEFT_ALPHA) * fraction);
+        } else {
+            return LEFT_ALPHA;
+        }
+    }
+
     public void start() {
         TypeEvaluator<Double> evaluator = new TypeEvaluator<Double>() {
             @Override
@@ -197,6 +231,7 @@ public class StopwatchView extends View {
                                  @Override
                                  public void onAnimationStart(Animator animation) {
                                      oldOuterAngle = outerAngle;
+                                     gradient = true;
                                  }
 
                                  @Override
@@ -208,6 +243,7 @@ public class StopwatchView extends View {
                                      innerAngle = 0;
                                      outerAngle = 0;
                                      oldOuterAngle = 0;
+                                     gradient = false;
                                      StopwatchView.this.invalidate();
                                  }
 
@@ -224,6 +260,7 @@ public class StopwatchView extends View {
                                      }
                                      innerAngle = 0;
                                      tenthOfSec = 0;
+                                     // to fix some precision problems.
                                      outerAngle = oldOuterAngle + Math.PI * 2 / 60;
                                      oldOuterAngle = outerAngle;
                                      StopwatchView.this.invalidate();
