@@ -288,5 +288,8 @@ public class StopwatchView extends View {
         }
     }
 
-
+    // return the record for now
+    public Period getPeriod() {
+        return new Period(minutes, seconds, tenthOfSec);
+    }
 }

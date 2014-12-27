@@ -51,4 +51,9 @@ public class RecordListAdapter extends BaseAdapter {
         textView.setText(String.valueOf(position));
         return view;
     }
+
+    // add new record to records.
+    public void addRecord(Record newRecord) {
+        records.add(0, newRecord);
+    }
 }

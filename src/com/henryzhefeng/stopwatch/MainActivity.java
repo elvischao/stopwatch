@@ -19,7 +19,9 @@ public class MainActivity extends Activity {
     private InitialState initialState = new InitialState();
     private RunningState runningState = new RunningState();
     private PausedState pausedState = new PausedState();
-    private float innerAngle = 0;
+
+    // references to some controls
+    private StopwatchView stopwatch;
 
     /**
      * Called when the activity is first created.
@@ -32,55 +34,55 @@ public class MainActivity extends Activity {
 
         // initialize
         ListView recordList = (ListView) findViewById(R.id.resultList);
-        recordList.setAdapter(new RecordListAdapter());
+        final RecordListAdapter adapter = new RecordListAdapter();
+        recordList.setAdapter(adapter);
+        stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
 
         // set state and visibility
         changeToState(initialState);
 
         // set button click listener
-        final StopwatchView stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
         Button btn = (Button) findViewById(R.id.init_start_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopwatch.start();
-                changeToState(runningState);
+                state.informInput(INPUT.START);
             }
         });
         btn = (Button) findViewById(R.id.run_lap_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: add new records
+                Period period = stopwatch.getPeriod();
+                Record record = new Record(0, period);
+                adapter.addRecord(record);
             }
         });
         btn = (Button) findViewById(R.id.run_pause_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopwatch.pause();
-                changeToState(pausedState);
+                state.informInput(INPUT.PAUSE);
             }
         });
         btn = (Button) findViewById(R.id.paused_start_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopwatch.resume();
-                changeToState(runningState);
+                state.informInput(INPUT.START);
             }
         });
         btn = (Button) findViewById(R.id.paused_reset_btn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopwatch.reset();
-                changeToState(initialState);
+                state.informInput(INPUT.RESET);
             }
         });
 
     }
 
+    // change the visibility
     private void changeToState(State newState) {
         View initLayout = findViewById(R.id.init_btn_bar);
         View runLayout = findViewById(R.id.run_btn_bar);
@@ -95,6 +97,7 @@ public class MainActivity extends Activity {
         } else {
             pausedLayout.setVisibility(View.VISIBLE);
         }
+        state = newState;
     }
 
     // using State Pattern
@@ -107,6 +110,7 @@ public class MainActivity extends Activity {
         public void informInput(INPUT input) {
             switch (input) {
                 case START:
+                    stopwatch.start();
                     changeToState(runningState);
                     break;
                 default:
@@ -120,8 +124,10 @@ public class MainActivity extends Activity {
         public void informInput(INPUT input) {
             switch (input) {
                 case LAP:
+                    //TODO
                     break;
                 case PAUSE:
+                    stopwatch.pause();
                     changeToState(pausedState);
                     break;
                 default:
@@ -135,9 +141,11 @@ public class MainActivity extends Activity {
         public void informInput(INPUT input) {
             switch (input) {
                 case RESET:
+                    stopwatch.reset();
                     changeToState(initialState);
                     break;
                 case START:
+                    stopwatch.resume();
                     changeToState(runningState);
                     break;
                 default:

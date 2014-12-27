@@ -1,11 +1,18 @@
 package com.henryzhefeng.stopwatch;
 
-import java.util.Date;
-
 /**
  * Created by 哲 on 12/23/2014.
  */
 public class Record {
-    Date startTime = null;
-    Date endTime = null;
+    // the order in sequence.
+    private int order = -1;
+    private Period period = null;
+
+    Record() {
+    }
+
+    Record(int order, Period period) {
+        this.order = order;
+        this.period = period;
+    }
 }
