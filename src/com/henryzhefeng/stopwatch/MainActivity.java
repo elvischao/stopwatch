@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
 
     // references to some controls
     private StopwatchView stopwatch;
+    private RecordListAdapter adapter;
 
     /**
      * Called when the activity is first created.
@@ -34,7 +35,7 @@ public class MainActivity extends Activity {
 
         // initialize
         ListView recordList = (ListView) findViewById(R.id.resultList);
-        final RecordListAdapter adapter = new RecordListAdapter();
+        adapter = new RecordListAdapter();
         recordList.setAdapter(adapter);
         stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
 
@@ -53,9 +54,7 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Period period = stopwatch.getPeriod();
-                Record record = new Record(0, period);
-                adapter.addRecord(record);
+                state.informInput(INPUT.LAP);
             }
         });
         btn = (Button) findViewById(R.id.run_pause_btn);
@@ -124,7 +123,8 @@ public class MainActivity extends Activity {
         public void informInput(INPUT input) {
             switch (input) {
                 case LAP:
-                    //TODO
+                    Period period = stopwatch.getPeriod();
+                    adapter.addRecord(period);
                     break;
                 case PAUSE:
                     stopwatch.pause();
@@ -142,6 +142,7 @@ public class MainActivity extends Activity {
             switch (input) {
                 case RESET:
                     stopwatch.reset();
+                    adapter.reset();
                     changeToState(initialState);
                     break;
                 case START:

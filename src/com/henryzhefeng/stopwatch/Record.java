@@ -5,8 +5,8 @@ package com.henryzhefeng.stopwatch;
  */
 public class Record {
     // the order in sequence.
-    private int order = -1;
-    private Period period = null;
+    public int order = -1;
+    public Period period = null;
 
     Record() {
     }
