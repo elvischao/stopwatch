@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
     // references to some controls
     private StopwatchView stopwatch;
     private RecordListAdapter adapter;
+    private ListView recordListView;
 
     /**
      * Called when the activity is first created.
@@ -34,9 +35,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main);
 
         // initialize
-        ListView recordList = (ListView) findViewById(R.id.resultList);
+        recordListView = (ListView) findViewById(R.id.resultList);
         adapter = new RecordListAdapter();
-        recordList.setAdapter(adapter);
+        recordListView.setAdapter(adapter);
         stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
 
         // set state and visibility
@@ -125,6 +126,7 @@ public class MainActivity extends Activity {
                 case LAP:
                     Period period = stopwatch.getPeriod();
                     adapter.addRecord(period);
+                    recordListView.smoothScrollToPosition(1);
                     break;
                 case PAUSE:
                     stopwatch.pause();

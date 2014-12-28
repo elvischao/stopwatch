@@ -12,7 +12,7 @@
     </LinearLayout>
     <RelativeLayout android:layout_width="fill_parent" android:layout_height="0dip" android:layout_weight="3"
                     android:background="@color/down_half_background_color">
-        <ListView android:id="@+id/resultList" android:layout_width="fill_parent"
+        <ListView android:id="@+id/resultList" android:layout_width="fill_parent" android:scrollbars="none"
                   android:layout_height="fill_parent" android:background="@android:color/transparent">
         </ListView>
         <LinearLayout android:id="@+id/init_btn_bar" style="@style/btn_bar_style" android:layout_width="fill_parent"
