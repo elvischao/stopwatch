@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -15,11 +16,16 @@ import java.util.List;
  */
 public class RecordListAdapter extends BaseAdapter {
 
+    // refer to the list view
+    private ListView listView;
+
     private List<Record> records = new ArrayList<Record>();
     private int recordNum;
     private final int PLACE_HOLDER_NUM = 8;
 
-    RecordListAdapter() {
+    RecordListAdapter(ListView listView) {
+        super();
+        this.listView = listView;
         reset();
     }
 
@@ -99,5 +105,9 @@ public class RecordListAdapter extends BaseAdapter {
     public void addRecord(Period period) {
         records.add(0, new Record(++recordNum, period));
         notifyDataSetInvalidated();
+        // set scroll to previous record
+        listView.setSelection(1);
+        // scroll to the latest record
+        listView.smoothScrollToPositionFromTop(0, 0, 1000);
     }
 }

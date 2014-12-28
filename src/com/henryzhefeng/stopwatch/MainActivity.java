@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
 
         // initialize
         recordListView = (ListView) findViewById(R.id.resultList);
-        adapter = new RecordListAdapter();
+        adapter = new RecordListAdapter(recordListView);
         recordListView.setAdapter(adapter);
         stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
 
@@ -126,7 +126,6 @@ public class MainActivity extends Activity {
                 case LAP:
                     Period period = stopwatch.getPeriod();
                     adapter.addRecord(period);
-                    recordListView.smoothScrollToPosition(1);
                     break;
                 case PAUSE:
                     stopwatch.pause();
