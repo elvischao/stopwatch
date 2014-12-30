@@ -9,4 +9,5 @@
     <color name="light_gray">#ffeaeaea</color>
     <color name="dark_gray">#ffd3d3d3</color>
     <color name="triangle_indicator_color">@android:color/white</color>
+    <color name="lap_circle_color">@android:color/white</color>
 </resources>

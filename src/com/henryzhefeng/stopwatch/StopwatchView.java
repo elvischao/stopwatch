@@ -1,6 +1,7 @@
 package com.henryzhefeng.stopwatch;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -10,6 +11,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
 /**
@@ -24,6 +27,7 @@ public class StopwatchView extends View {
     private Paint secClockJointPaint;
     private Paint secClockPointerPaint;
     private Paint trianglePaint;
+    private Paint lapCirclePaint;
 
     private double innerAngle;
     private double outerAngle;
@@ -32,20 +36,27 @@ public class StopwatchView extends View {
     private int minutes;
 
     // for drawing
-    float radiusMarker;
-    final float markerLen = 50.0f;
+    private float radiusMarker;
+    private final float markerLen = 50.0f;
     // use 1/4 second as marker unit
-    final double deltaAngle = (Math.PI / 30) / 2 / 2;
-    final double rangeAngle = 2 * Math.PI / 3;
+    private final double deltaAngle = (Math.PI / 30) / 2 / 2;
+    private final double rangeAngle = 2 * Math.PI / 3;
 
-    // for animation
+    // for lap
+    private final float lapRadius = 8.0f;
+    private final float lapMargin = 15.0f;
+    private float lapExtraMargin = 0f;
+    private final float LAP_EXTRA_MARGIN_MAX = 25.0f;
+    private double lapAngle = 0;
+
+    // for animation control
     private boolean gradient = false;
     private double oldOuterAngle;
-    private ValueAnimator animator;
-
+    private ValueAnimator mainAmin;
+    private AnimatorSet lapAnimSet;
 
     // initialize private resources
-    private void initial() {
+    private void initialize() {
         Resources resources = getResources();
         markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         markerPaint.setColor(resources.getColor(R.color.marker_color));
@@ -75,21 +86,74 @@ public class StopwatchView extends View {
 
         trianglePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         trianglePaint.setColor(resources.getColor(R.color.triangle_indicator_color));
+
+        lapCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        lapCirclePaint.setColor(resources.getColor(R.color.lap_circle_color));
+        lapCirclePaint.setAlpha(0);
+
+        //initialize lapAnimSet
+        //  translate animator
+        ValueAnimator transAnim = ValueAnimator.ofFloat(0, LAP_EXTRA_MARGIN_MAX);
+        transAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                lapExtraMargin = (Float) animation.getAnimatedValue();
+                StopwatchView.this.invalidate();
+            }
+        });
+        transAnim.setInterpolator(new Interpolator() {
+            @Override
+            public float getInterpolation(float input) {
+                if (input <= 0.5f) {
+                    return input * 2;
+                } else {
+                    return 1.0f - (input - 0.5f);
+                }
+            }
+        });
+        transAnim.setDuration(resources.getInteger(android.R.integer.config_mediumAnimTime));
+        //  fade in animator
+        ValueAnimator fadeInAnim = ValueAnimator.ofInt(0, 255);
+        fadeInAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int alpha = (Integer) animation.getAnimatedValue();
+                lapCirclePaint.setAlpha(alpha);
+                StopwatchView.this.invalidate();
+            }
+        });
+        fadeInAnim.setDuration(resources.getInteger(android.R.integer.config_shortAnimTime));
+        //  fade out animator
+        ValueAnimator fadeOutAnim = ValueAnimator.ofInt(255, 0);
+        fadeOutAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int alpha = (Integer) animation.getAnimatedValue();
+                lapCirclePaint.setAlpha(alpha);
+                StopwatchView.this.invalidate();
+            }
+        });
+        fadeOutAnim.setInterpolator(new AccelerateInterpolator());
+        fadeOutAnim.setDuration(resources.getInteger(android.R.integer.config_longAnimTime));
+        //  the animator set
+        lapAnimSet = new AnimatorSet();
+        lapAnimSet.play(transAnim).with(fadeInAnim);
+        lapAnimSet.play(fadeOutAnim).after(transAnim);
     }
 
     public StopwatchView(Context context) {
         super(context);
-        initial();
+        initialize();
     }
 
     public StopwatchView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initial();
+        initialize();
     }
 
     public StopwatchView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initial();
+        initialize();
     }
 
 
@@ -139,10 +203,17 @@ public class StopwatchView extends View {
             float startY = (float) (centerY - radiusMarker * Math.cos(angle));
             float endX = (float) (centerX + (radiusMarker - markerLen) * Math.sin(angle));
             float endY = (float) (centerY - (radiusMarker - markerLen) * Math.cos(angle));
+            // set alpha of the marker
             markerPaint.setAlpha(calMarkerAlpha(angle, leftAngle, rightAngle, rangeAngle));
             canvas.drawLine(startX, startY, endX, endY, markerPaint);
             angle += deltaAngle;
         }
+
+        // Draw lap circle
+        float lapLayoutRadius = radiusMarker - markerLen - lapMargin - lapExtraMargin;
+        float lapX = (float) (centerX + lapLayoutRadius * Math.sin(lapAngle));
+        float lapY = (float) (centerY - lapLayoutRadius * Math.cos(lapAngle));
+        canvas.drawCircle(lapX, lapY, lapRadius, lapCirclePaint);
 
         // Draw the triangle indicator
         float tgLen = 40.0f;
@@ -214,11 +285,11 @@ public class StopwatchView extends View {
                 return startValue + (endValue - startValue) * fraction;
             }
         };
-        animator = ValueAnimator.ofObject(evaluator, 0.0, 2 * Math.PI);
-        animator.setDuration(1000);
-        animator.setInterpolator(new LinearInterpolator());
-        animator.setRepeatCount(ValueAnimator.INFINITE);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        mainAmin = ValueAnimator.ofObject(evaluator, 0.0, 2 * Math.PI);
+        mainAmin.setDuration(1000);
+        mainAmin.setInterpolator(new LinearInterpolator());
+        mainAmin.setRepeatCount(ValueAnimator.INFINITE);
+        mainAmin.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 innerAngle = (Double) animation.getAnimatedValue();
@@ -231,7 +302,7 @@ public class StopwatchView extends View {
                 StopwatchView.this.invalidate();
             }
         });
-        animator.addListener(new Animator.AnimatorListener() {
+        mainAmin.addListener(new Animator.AnimatorListener() {
                                  @Override
                                  public void onAnimationStart(Animator animation) {
                                      oldOuterAngle = outerAngle;
@@ -271,31 +342,36 @@ public class StopwatchView extends View {
                                  }
                              }
         );
-        animator.start();
+        mainAmin.start();
     }
 
     public void pause() {
-        if (animator != null) {
-            animator.pause();
+        if (mainAmin != null) {
+            mainAmin.pause();
         }
     }
 
     public void resume() {
-        if (animator != null) {
-            animator.resume();
+        if (mainAmin != null) {
+            mainAmin.resume();
         }
     }
 
     public void reset() {
-        if (animator != null) {
-            animator.end();
+        if (mainAmin != null) {
+            mainAmin.end();
         }
     }
 
     // return the record for now
     public Period getPeriod() {
-        // animation of lap
-
+        //animation of lap
+        //  initialize
+        if (lapAnimSet.isRunning()) {
+            lapAnimSet.cancel();
+        }
+        lapAngle = outerAngle;
+        lapAnimSet.start();
         return new Period(minutes, seconds, tenthOfSec);
     }
 }
