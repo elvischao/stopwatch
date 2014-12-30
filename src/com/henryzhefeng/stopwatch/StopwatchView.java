@@ -31,10 +31,18 @@ public class StopwatchView extends View {
     private int seconds;
     private int minutes;
 
+    // for drawing
+    float radiusMarker;
+    final float markerLen = 50.0f;
+    // use 1/4 second as marker unit
+    final double deltaAngle = (Math.PI / 30) / 2 / 2;
+    final double rangeAngle = 2 * Math.PI / 3;
+
     // for animation
     private boolean gradient = false;
     private double oldOuterAngle;
     private ValueAnimator animator;
+
 
     // initialize private resources
     private void initial() {
@@ -121,13 +129,9 @@ public class StopwatchView extends View {
         // Draw markers.
         double angle = 0.0;
         // draw params which can be adjusted.
-        float radiusMarker = Math.min(centerX, centerY) * 2 / 3;
-        float markerLen = 50.0f;
-        // use 1/4 second as marker unit
-        double deltaAngle = (Math.PI / 30) / 2 / 2;
+        radiusMarker = Math.min(centerX, centerY) * 2 / 3;
         // calculate the angle bounds. This is for alpha changing animation
         // the alpha changing range in radius
-        final double rangeAngle = 2 * Math.PI / 3;
         double rightAngle = outerAngle % (2 * Math.PI);
         double leftAngle = (rightAngle + 2 * Math.PI - rangeAngle) % (2 * Math.PI);
         for (int i = 0; i < 2 * Math.PI / deltaAngle; i++) {
@@ -290,6 +294,8 @@ public class StopwatchView extends View {
 
     // return the record for now
     public Period getPeriod() {
+        // animation of lap
+
         return new Period(minutes, seconds, tenthOfSec);
     }
 }
