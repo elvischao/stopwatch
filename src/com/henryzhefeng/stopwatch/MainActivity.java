@@ -46,7 +46,8 @@ public class MainActivity extends Activity {
         recordList.setAdapter(adapter);
         //set onTouch listener
         //TODO: have problem that the layout will shaking.
-        recordList.setOnTouchListener(new ListOnTouchListener());
+        View mask = findViewById(R.id.view_mask);
+        mask.setOnTouchListener(new ListOnTouchListener());
         stopwatch.setOnTouchListener(new stopWatchOnTouchListener());
 
         //calculate layout size
