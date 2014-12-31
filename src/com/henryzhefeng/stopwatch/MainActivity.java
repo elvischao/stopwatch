@@ -2,28 +2,30 @@ package com.henryzhefeng.stopwatch;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
-import android.view.Window;
+import android.util.DisplayMetrics;
+import android.view.*;
 import android.widget.Button;
 import android.widget.ListView;
 
 public class MainActivity extends Activity {
 
-    // the input from buttons
+    //the input from buttons
     public enum INPUT {
         START, RESET, PAUSE, LAP
     }
 
-    // data members
+    //data members
     private State state;
     private InitialState initialState = new InitialState();
     private RunningState runningState = new RunningState();
     private PausedState pausedState = new PausedState();
 
-    // references to some controls
+    //references to some controls
     private StopwatchView stopwatch;
     private RecordListAdapter adapter;
-    private ListView recordListView;
+    private ListView recordList;
+    private ViewGroup upLayout;
+    private ViewGroup downLayout;
 
     /**
      * Called when the activity is first created.
@@ -34,11 +36,25 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
 
-        // initialize
-        recordListView = (ListView) findViewById(R.id.resultList);
-        adapter = new RecordListAdapter(recordListView);
-        recordListView.setAdapter(adapter);
-        stopwatch = (StopwatchView) MainActivity.this.findViewById(R.id.stopwatch);
+        //initialize
+        recordList = (ListView) findViewById(R.id.resultList);
+        stopwatch = (StopwatchView) findViewById(R.id.stopwatch);
+        upLayout = (ViewGroup) findViewById(R.id.up_half_layout);
+        downLayout = (ViewGroup) findViewById(R.id.down_half_layout);
+        //set adapter
+        adapter = new RecordListAdapter(recordList);
+        recordList.setAdapter(adapter);
+        //set onTouch listener
+        //TODO: have problem that the layout will shaking.
+        recordList.setOnTouchListener(new ListOnTouchListener());
+        stopwatch.setOnTouchListener(new stopWatchOnTouchListener());
+
+        //calculate layout size
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+        params.height = metrics.heightPixels * 5 / 8;
+        upLayout.setLayoutParams(params);
 
         // set state and visibility
         changeToState(initialState);
@@ -79,7 +95,6 @@ public class MainActivity extends Activity {
                 state.informInput(INPUT.RESET);
             }
         });
-
     }
 
     // change the visibility
@@ -98,6 +113,37 @@ public class MainActivity extends Activity {
             pausedLayout.setVisibility(View.VISIBLE);
         }
         state = newState;
+    }
+
+    //inner classes
+    //the onTouch listener
+    private class ListOnTouchListener implements View.OnTouchListener {
+        private class ListGestureListener extends GestureDetector.SimpleOnGestureListener {
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+                params.height -= distanceY;
+                upLayout.setLayoutParams(params);
+                return true;
+            }
+        }
+
+        private ListGestureListener gestureListener = new ListGestureListener();
+        private GestureDetector gestureDetector = new GestureDetector(MainActivity.this, gestureListener);
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        }
+    }
+
+    private class stopWatchOnTouchListener implements View.OnTouchListener {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            //TODO: change the view of stopwatch
+            return true;
+        }
     }
 
     // using State Pattern
