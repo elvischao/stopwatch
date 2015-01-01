@@ -55,6 +55,11 @@ public class StopwatchView extends View {
     private ValueAnimator mainAmin;
     private AnimatorSet lapAnimSet;
 
+    //to fix the position of stopwatch
+    private boolean bInitial = true;
+    private float centerX;
+    private float centerY;
+
     // initialize private resources
     private void initialize() {
         Resources resources = getResources();
@@ -185,15 +190,18 @@ public class StopwatchView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int width = getMeasuredWidth();
-        int height = getMeasuredHeight();
-        float centerX = width / 2;
-        float centerY = height / 2;
+        //run only in the first time.  Record the fixed center position.
+        if (bInitial) {
+            int width = getMeasuredWidth();
+            int height = getMeasuredHeight();
+            centerX = width / 2;
+            centerY = height / 2;
+            bInitial = false;
+            radiusMarker = Math.min(centerX, centerY) * 2 / 3;
+        }
 
         // Draw markers.
         double angle = 0.0;
-        // draw params which can be adjusted.
-        radiusMarker = Math.min(centerX, centerY) * 2 / 3;
         // calculate the angle bounds. This is for alpha changing animation
         // the alpha changing range in radius
         double rightAngle = outerAngle % (2 * Math.PI);
