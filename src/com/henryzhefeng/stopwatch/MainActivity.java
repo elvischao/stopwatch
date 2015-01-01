@@ -45,9 +45,7 @@ public class MainActivity extends Activity {
         adapter = new RecordListAdapter(recordList);
         recordList.setAdapter(adapter);
         //set onTouch listener
-        //TODO: have problem that the layout will shaking.
-        View mask = findViewById(R.id.view_mask);
-        mask.setOnTouchListener(new ListOnTouchListener());
+        recordList.setOnTouchListener(new ListOnTouchListener());
         stopwatch.setOnTouchListener(new stopWatchOnTouchListener());
 
         //calculate layout size
@@ -119,12 +117,18 @@ public class MainActivity extends Activity {
     //inner classes
     //the onTouch listener
     private class ListOnTouchListener implements View.OnTouchListener {
+
         private class ListGestureListener extends GestureDetector.SimpleOnGestureListener {
+            private boolean skip = false;
+
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                ViewGroup.LayoutParams params = upLayout.getLayoutParams();
-                params.height -= distanceY;
-                upLayout.setLayoutParams(params);
+                if (!skip) {
+                    ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+                    params.height -= distanceY;
+                    upLayout.setLayoutParams(params);
+                }
+                skip = !skip;
                 return true;
             }
         }

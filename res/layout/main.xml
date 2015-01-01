@@ -15,13 +15,9 @@
     <RelativeLayout android:id="@+id/down_half_layout" android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/down_half_background_color">
-        <FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
-            <ListView android:id="@+id/resultList" android:layout_width="fill_parent" android:scrollbars="none"
-                      android:layout_height="fill_parent" android:background="@android:color/transparent">
-            </ListView>
-            <TextView android:id="@+id/view_mask" android:layout_width="fill_parent" android:layout_height="fill_parent"
-                      android:background="@android:color/transparent"/>
-        </FrameLayout>
+        <ListView android:id="@+id/resultList" android:layout_width="fill_parent" android:scrollbars="none"
+                  android:layout_height="fill_parent" android:background="@android:color/transparent">
+        </ListView>
         <LinearLayout android:id="@+id/init_btn_bar" style="@style/btn_bar_style" android:layout_width="fill_parent"
                       android:layout_height="@dimen/btn_bar_height" android:orientation="horizontal"
                       android:layout_alignParentBottom="true">
