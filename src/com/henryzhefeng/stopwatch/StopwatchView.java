@@ -29,13 +29,22 @@ public class StopwatchView extends View {
     private Paint trianglePaint;
     private Paint lapCirclePaint;
 
+    //painters' alpha
+    private final int MARKER_MAX_ALPHA = 140;
+    private final int TEXT_MAX_ALPHA = 255;
+    private final int SEC_CLOCK_CIRCLE_MAX_ALPHA = 140;
+    private final int SEC_CLOCK_JOINT_MAX_ALPHA = 255;
+    private final int SEC_CLOCK_POINTER_MAX_ALPHA = 255;
+    private final int TRIA_MAX_ALPHA = 255;
+    //the variable used to change whole alpha.
+    private double alphaFraction = 1.0;
+
+    // for drawing
     private double innerAngle;
     private double outerAngle;
     private int tenthOfSec;
     private int seconds;
     private int minutes;
-
-    // for drawing
     private float radiusMarker;
     private final float markerLen = 50.0f;
     // use 1/4 second as marker unit
@@ -56,7 +65,6 @@ public class StopwatchView extends View {
     private AnimatorSet lapAnimSet;
 
     //to fix the position of stopwatch
-    private boolean bInitial = true;
     private float centerX;
     private float centerY;
 
@@ -71,30 +79,34 @@ public class StopwatchView extends View {
         markerPaint.setColor(resources.getColor(R.color.marker_color));
         markerPaint.setStyle(Paint.Style.STROKE);
         markerPaint.setStrokeWidth(3.0f);
-        markerPaint.setAlpha(140);
+        markerPaint.setAlpha(MARKER_MAX_ALPHA);
 
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(resources.getColor(R.color.time_text_color));
         textPaint.setTextSize(resources.getInteger(R.integer.text_size));
+        textPaint.setAlpha(TEXT_MAX_ALPHA);
 
         secClockCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         secClockCirclePaint.setColor(resources.getColor(R.color.sec_clock_circle_color));
         secClockCirclePaint.setStyle(Paint.Style.STROKE);
         secClockCirclePaint.setStrokeWidth(3.0f);
-        secClockCirclePaint.setAlpha(140);
+        secClockCirclePaint.setAlpha(SEC_CLOCK_CIRCLE_MAX_ALPHA);
 
         secClockJointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         secClockJointPaint.setColor(resources.getColor(R.color.sec_clock_inner_color));
         secClockJointPaint.setStyle(Paint.Style.STROKE);
         secClockJointPaint.setStrokeWidth(4.0f);
+        secClockJointPaint.setAlpha(SEC_CLOCK_JOINT_MAX_ALPHA);
 
         secClockPointerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         secClockPointerPaint.setColor(resources.getColor(R.color.sec_clock_inner_color));
         secClockPointerPaint.setStyle(Paint.Style.STROKE);
         secClockPointerPaint.setStrokeWidth(2.0f);
+        secClockPointerPaint.setAlpha(SEC_CLOCK_POINTER_MAX_ALPHA);
 
         trianglePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         trianglePaint.setColor(resources.getColor(R.color.triangle_indicator_color));
+        trianglePaint.setAlpha(TRIA_MAX_ALPHA);
 
         lapCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         lapCirclePaint.setColor(resources.getColor(R.color.lap_circle_color));
@@ -173,7 +185,7 @@ public class StopwatchView extends View {
         setMeasuredDimension(measuredWidth, measuredHeight);
     }
 
-    // helper function which calculates width and height.
+    //helper function which calculates width and height.
     private int getMeasuredValue(int measureSpec) {
         int specMode = MeasureSpec.getMode(measureSpec);
         int specSize = MeasureSpec.getSize(measureSpec);
@@ -193,19 +205,29 @@ public class StopwatchView extends View {
         return result;
     }
 
+    //helper function to set alpha value by the layout size
+    private void refreshAlpha() {
+        int height = getHeight();
+        alphaFraction = (height - MIN_HEIGHT) * 1.0 / (MAX_HEIGHT - MIN_HEIGHT);
+        //set all painters' alpha (except marker's painter)
+        textPaint.setAlpha((int) (TEXT_MAX_ALPHA * alphaFraction));
+        secClockCirclePaint.setAlpha((int) (SEC_CLOCK_CIRCLE_MAX_ALPHA * alphaFraction));
+        secClockJointPaint.setAlpha((int) (SEC_CLOCK_JOINT_MAX_ALPHA * alphaFraction));
+        secClockPointerPaint.setAlpha((int) (SEC_CLOCK_POINTER_MAX_ALPHA * alphaFraction));
+        trianglePaint.setAlpha((int) (TRIA_MAX_ALPHA * alphaFraction));
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
-        //run only in the first time.  Record the fixed center position.
-        if (bInitial) {
-            int width = getMeasuredWidth();
-            int height = getMeasuredHeight();
-            centerX = width / 2;
-            centerY = height / 2;
-            bInitial = false;
-            radiusMarker = Math.min(centerX, centerY) * 2 / 3;
-        }
+        int width = getMeasuredWidth();
+        centerX = width / 2;
+        centerY = MAX_HEIGHT / 2;
+        radiusMarker = Math.min(centerX, centerY) * 2 / 3;
 
-        // Draw markers.
+        //set alpha values
+        refreshAlpha();
+
+        //Draw markers.
         double angle = 0.0;
         // calculate the angle bounds. This is for alpha changing animation
         // the alpha changing range in radius
@@ -217,7 +239,7 @@ public class StopwatchView extends View {
             float endX = (float) (centerX + (radiusMarker - markerLen) * Math.sin(angle));
             float endY = (float) (centerY - (radiusMarker - markerLen) * Math.cos(angle));
             // set alpha of the marker
-            markerPaint.setAlpha(calMarkerAlpha(angle, leftAngle, rightAngle, rangeAngle));
+            markerPaint.setAlpha((int) (alphaFraction * calMarkerAlpha(angle, leftAngle, rightAngle, rangeAngle)));
             canvas.drawLine(startX, startY, endX, endY, markerPaint);
             angle += deltaAngle;
         }
