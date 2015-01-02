@@ -134,7 +134,8 @@ public class MainActivity extends Activity {
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 if (!skip) {
                     ViewGroup.LayoutParams params = upLayout.getLayoutParams();
-                    params.height -= distanceY;
+                    params.height -= distanceY * 2;
+                    //put constrains on layout resizing.
                     if (params.height < UP_MIN_HEIGHT) {
                         params.height = UP_MIN_HEIGHT;
                     } else if (params.height > UP_MAX_HEIGHT) {
