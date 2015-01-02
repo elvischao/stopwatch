@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -23,6 +24,7 @@ public class StopwatchView extends View {
     // Painters
     private Paint markerPaint;
     private Paint textPaint;
+    private Paint topTextPaint;
     private Paint secClockCirclePaint;
     private Paint secClockJointPaint;
     private Paint secClockPointerPaint;
@@ -85,6 +87,11 @@ public class StopwatchView extends View {
         textPaint.setColor(resources.getColor(R.color.time_text_color));
         textPaint.setTextSize(resources.getInteger(R.integer.text_size));
         textPaint.setAlpha(TEXT_MAX_ALPHA);
+
+        topTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        topTextPaint.setColor(resources.getColor(R.color.time_text_color));
+        topTextPaint.setTextSize(resources.getInteger(R.integer.text_size));
+        topTextPaint.setAlpha(0);
 
         secClockCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         secClockCirclePaint.setColor(resources.getColor(R.color.sec_clock_circle_color));
@@ -211,6 +218,7 @@ public class StopwatchView extends View {
         alphaFraction = (height - MIN_HEIGHT) * 1.0 / (MAX_HEIGHT - MIN_HEIGHT);
         //set all painters' alpha (except marker's painter)
         textPaint.setAlpha((int) (TEXT_MAX_ALPHA * alphaFraction));
+        topTextPaint.setAlpha((int) (TEXT_MAX_ALPHA * (1 - alphaFraction)));
         secClockCirclePaint.setAlpha((int) (SEC_CLOCK_CIRCLE_MAX_ALPHA * alphaFraction));
         secClockJointPaint.setAlpha((int) (SEC_CLOCK_JOINT_MAX_ALPHA * alphaFraction));
         secClockPointerPaint.setAlpha((int) (SEC_CLOCK_POINTER_MAX_ALPHA * alphaFraction));
@@ -269,6 +277,10 @@ public class StopwatchView extends View {
         String timeText = String.format("%02d:%02d.%01d", minutes, seconds, tenthOfSec);
         float textWidth = textPaint.measureText(timeText);
         canvas.drawText(timeText, centerX - textWidth / 2, centerY, textPaint);
+        // Also draw it on the top of stopwatch.
+        Rect bounds = new Rect();
+        topTextPaint.getTextBounds(timeText, 0, timeText.length(), bounds);
+        canvas.drawText(timeText, centerX - textWidth / 2, bounds.height() / 2 + MIN_HEIGHT / 2, topTextPaint);
 
         // Draw small clock for seconds
         float innerCenterX = centerX;
@@ -285,6 +297,7 @@ public class StopwatchView extends View {
         float endX = (float) (innerCenterX + radiusSec * Math.sin(innerAngle));
         float endY = (float) (innerCenterY - radiusSec * Math.cos(innerAngle));
         canvas.drawLine(startX, startY, endX, endY, secClockPointerPaint);
+
     }
 
     // helper function to calculate marker's alphaValue, the inputs must be in 2*PI.
