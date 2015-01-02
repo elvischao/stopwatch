@@ -1,5 +1,7 @@
 package com.henryzhefeng.stopwatch;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -26,6 +28,9 @@ public class MainActivity extends Activity {
     private ListView recordList;
     private ViewGroup upLayout;
     private ViewGroup downLayout;
+
+    // for animation control
+    private Animator layoutAnim;
 
     //constants(we can't set them final)
     private int UP_MAX_HEIGHT;
@@ -126,6 +131,55 @@ public class MainActivity extends Activity {
     //the onTouch listener which is responsible to change layout size.
     private class ListOnTouchListener implements View.OnTouchListener {
 
+        private ListGestureListener gestureListener = new ListGestureListener();
+        private GestureDetector gestureDetector = new GestureDetector(MainActivity.this, gestureListener);
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            gestureDetector.onTouchEvent(event);
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_UP:
+                    int height = upLayout.getHeight();
+                    // expand upLayout if height is more than half.
+                    if (height >= (UP_MIN_HEIGHT + UP_MAX_HEIGHT) / 2) {
+                        layoutAnim = generateLayoutAnimator(height, UP_MAX_HEIGHT);
+                        layoutAnim.start();
+                    }
+                    // shrink otherwise
+                    else {
+                        layoutAnim = generateLayoutAnimator(height, UP_MIN_HEIGHT);
+                        layoutAnim.start();
+                    }
+                    break;
+                case MotionEvent.ACTION_DOWN:
+                    if (layoutAnim != null) {
+                        layoutAnim.cancel();
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        }
+
+        // helper function to generate animator
+        private Animator generateLayoutAnimator(int startValue, int endValue) {
+            ValueAnimator animator = ValueAnimator.ofInt(startValue, endValue);
+            animator.setDuration(500);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int value = (Integer) animation.getAnimatedValue();
+                    ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+                    params.height = value;
+                    upLayout.setLayoutParams(params);
+                }
+            });
+            return animator;
+        }
+
+        //inner class
         private class ListGestureListener extends GestureDetector.SimpleOnGestureListener {
             //reduce the frequent into half
             private boolean skip = false;
@@ -148,14 +202,6 @@ public class MainActivity extends Activity {
             }
         }
 
-        private ListGestureListener gestureListener = new ListGestureListener();
-        private GestureDetector gestureDetector = new GestureDetector(MainActivity.this, gestureListener);
-
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            gestureDetector.onTouchEvent(event);
-            return true;
-        }
     }
 
     private class stopWatchOnTouchListener implements View.OnTouchListener {
