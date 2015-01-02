@@ -27,6 +27,10 @@ public class MainActivity extends Activity {
     private ViewGroup upLayout;
     private ViewGroup downLayout;
 
+    //constants(we can't set them final)
+    private int UP_MAX_HEIGHT;
+    private int UP_MIN_HEIGHT;
+
     /**
      * Called when the activity is first created.
      */
@@ -51,8 +55,12 @@ public class MainActivity extends Activity {
         //calculate layout size
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        UP_MAX_HEIGHT = metrics.heightPixels * 5 / 8;
+        UP_MIN_HEIGHT = metrics.heightPixels * 1 / 8;
+        stopwatch.setMaxHeight(UP_MAX_HEIGHT);
+        stopwatch.setMinHeight(UP_MIN_HEIGHT);
         ViewGroup.LayoutParams params = upLayout.getLayoutParams();
-        params.height = metrics.heightPixels * 5 / 8;
+        params.height = UP_MAX_HEIGHT;
         upLayout.setLayoutParams(params);
 
         // set state and visibility
@@ -115,10 +123,11 @@ public class MainActivity extends Activity {
     }
 
     //inner classes
-    //the onTouch listener
+    //the onTouch listener which is responsible to change layout size.
     private class ListOnTouchListener implements View.OnTouchListener {
 
         private class ListGestureListener extends GestureDetector.SimpleOnGestureListener {
+            //reduce the frequent into half
             private boolean skip = false;
 
             @Override
@@ -126,6 +135,11 @@ public class MainActivity extends Activity {
                 if (!skip) {
                     ViewGroup.LayoutParams params = upLayout.getLayoutParams();
                     params.height -= distanceY;
+                    if (params.height < UP_MIN_HEIGHT) {
+                        params.height = UP_MIN_HEIGHT;
+                    } else if (params.height > UP_MAX_HEIGHT) {
+                        params.height = UP_MAX_HEIGHT;
+                    }
                     upLayout.setLayoutParams(params);
                 }
                 skip = !skip;

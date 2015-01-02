@@ -60,6 +60,10 @@ public class StopwatchView extends View {
     private float centerX;
     private float centerY;
 
+    //for height control
+    private int MAX_HEIGHT;
+    private int MIN_HEIGHT;
+
     // initialize private resources
     private void initialize() {
         Resources resources = getResources();
@@ -185,6 +189,7 @@ public class StopwatchView extends View {
             // not specified
             result = 200;
         }
+
         return result;
     }
 
@@ -284,6 +289,14 @@ public class StopwatchView extends View {
         } else {
             return LEFT_ALPHA;
         }
+    }
+
+    public void setMaxHeight(int height) {
+        MAX_HEIGHT = height;
+    }
+
+    public void setMinHeight(int height) {
+        MIN_HEIGHT = height;
     }
 
     public void start() {
