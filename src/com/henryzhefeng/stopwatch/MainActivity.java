@@ -137,28 +137,34 @@ public class MainActivity extends Activity {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             gestureDetector.onTouchEvent(event);
-            int action = event.getAction();
-            switch (action) {
-                case MotionEvent.ACTION_UP:
-                    int height = upLayout.getHeight();
-                    // expand upLayout if height is more than half.
-                    if (height >= (UP_MIN_HEIGHT + UP_MAX_HEIGHT) / 2) {
-                        layoutAnim = generateLayoutAnimator(height, UP_MAX_HEIGHT);
-                        layoutAnim.start();
-                    }
-                    // shrink otherwise
-                    else {
-                        layoutAnim = generateLayoutAnimator(height, UP_MIN_HEIGHT);
-                        layoutAnim.start();
-                    }
-                    break;
-                case MotionEvent.ACTION_DOWN:
-                    if (layoutAnim != null) {
-                        layoutAnim.cancel();
-                    }
-                    break;
-                default:
-                    break;
+            // use recordList to handle event.
+            if (upLayout.getHeight() == UP_MIN_HEIGHT) {
+                recordList.onTouchEvent(event);
+            } else {
+                int action = event.getAction();
+                // for auto-aligning animation
+                switch (action) {
+                    case MotionEvent.ACTION_UP:
+                        int height = upLayout.getHeight();
+                        // expand upLayout if height is more than half.
+                        if (height >= (UP_MIN_HEIGHT + UP_MAX_HEIGHT) / 2) {
+                            layoutAnim = generateLayoutAnimator(height, UP_MAX_HEIGHT);
+                            layoutAnim.start();
+                        }
+                        // shrink otherwise
+                        else {
+                            layoutAnim = generateLayoutAnimator(height, UP_MIN_HEIGHT);
+                            layoutAnim.start();
+                        }
+                        break;
+                    case MotionEvent.ACTION_DOWN:
+                        if (layoutAnim != null) {
+                            layoutAnim.cancel();
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
             return true;
         }
@@ -186,10 +192,16 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+                // we don't handle events here if users try to scroll down while upLayout is minimized and the first list item is not shown.
+                // which means this event should be handled by list view itself.  The user now wants to scroll the records not resize layout.
+                if (params.height == UP_MIN_HEIGHT && recordList.getChildAt(0).getTop()!= 0) {
+                    return false;
+                }
                 if (!skip) {
-                    ViewGroup.LayoutParams params = upLayout.getLayoutParams();
+                    // layout resizing. distanceY will be negative if it is from up to down
                     params.height -= distanceY * 2;
-                    //put constrains on layout resizing.
+                    //put constrains on layout resizing, so it won't be too large or too small.
                     if (params.height < UP_MIN_HEIGHT) {
                         params.height = UP_MIN_HEIGHT;
                     } else if (params.height > UP_MAX_HEIGHT) {
