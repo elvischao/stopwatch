@@ -195,7 +195,7 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams params = upLayout.getLayoutParams();
                 // we don't handle events here if users try to scroll down while upLayout is minimized and the first list item is not shown.
                 // which means this event should be handled by list view itself.  The user now wants to scroll the records not resize layout.
-                if (params.height == UP_MIN_HEIGHT && recordList.getChildAt(0).getTop()!= 0) {
+                if (params.height == UP_MIN_HEIGHT && recordList.getChildAt(0).getTop() != 0) {
                     return false;
                 }
                 if (!skip) {

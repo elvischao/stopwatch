@@ -16,6 +16,11 @@ import java.util.List;
  */
 public class RecordListAdapter extends BaseAdapter {
 
+    @Override
+    public boolean isEnabled(int position) {
+        return false;
+    }
+
     // refer to the list view
     private ListView listView;
 
