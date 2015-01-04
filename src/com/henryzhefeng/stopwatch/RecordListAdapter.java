@@ -8,7 +8,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,9 +19,12 @@ public class RecordListAdapter extends BaseAdapter {
     // refer to the list view
     private ListView listView;
 
-    private List<Record> records = new ArrayList<Record>();
+    private List<Record> records = new LinkedList<Record>();
+    // record how many items inserted.
     private int recordNum;
-    private final int PLACE_HOLDER_NUM = 8;
+    // record how many place holders are in records.
+    private int holderNum;
+    private final int PLACE_HOLDER_NUM = 9;
 
     RecordListAdapter(ListView listView) {
         super();
@@ -31,6 +34,8 @@ public class RecordListAdapter extends BaseAdapter {
 
     public void reset() {
         recordNum = 0;
+        // we leave one place holder when the list is full of items for visual reasons
+        holderNum = PLACE_HOLDER_NUM - 1;
         // clear records
         records.clear();
         // set place holder items
@@ -104,10 +109,29 @@ public class RecordListAdapter extends BaseAdapter {
     // add new record to records.
     public void addRecord(Period period) {
         records.add(0, new Record(++recordNum, period));
+//        if (holderNum > 0) {
+//            records.remove(records.size() - 1);
+//            --holderNum;
+//        }
         notifyDataSetInvalidated();
         // set scroll to previous record
         listView.setSelection(1);
+        // TODO: when upLayout minimized, there will be a feeling of "sudden sliding".
         // scroll to the latest record
-        listView.smoothScrollToPositionFromTop(0, 0, 1000);
+        listView.post(new Runnable() {
+            @Override
+            public void run() {
+                listView.smoothScrollToPositionFromTop(0, 0, 500);
+            }
+        });
+        if (holderNum > 0) {
+            listView.post(new Runnable() {
+                @Override
+                public void run() {
+                    records.remove(records.size() - 1);
+                }
+            });
+            --holderNum;
+        }
     }
 }
